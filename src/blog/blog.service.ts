@@ -2,8 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Blog } from './blog.entity/blog.entity';
 import { Repository } from 'typeorm';
-import { User } from 'src/auth/user.entity/user.entity';
-
+import { User } from '../auth/user.entity/user.entity';
 @Injectable()
 export class BlogService {
   constructor(@InjectRepository(Blog) private blogRepo: Repository<Blog>) {}

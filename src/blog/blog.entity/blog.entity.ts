@@ -5,8 +5,7 @@ import {
   ManyToOne,
   CreateDateColumn,
 } from 'typeorm';
-import { User } from 'src/auth/user.entity/user.entity';
-
+import { User } from '../../auth/user.entity/user.entity';
 @Entity()
 export class Blog {
   @PrimaryGeneratedColumn()
