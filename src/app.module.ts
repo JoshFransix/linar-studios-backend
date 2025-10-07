@@ -14,7 +14,7 @@ import { BlogModule } from './blog/blog.module';
       type: 'postgres',
       url: process.env.DATABASE_URL,
       autoLoadEntities: true,
-      synchronize: true, // ⚠️ dev only
+      synchronize: process.env.NODE_ENV !== 'production',
     }),
     AuthModule,
     BlogModule,
