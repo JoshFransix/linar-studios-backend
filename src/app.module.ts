@@ -15,6 +15,9 @@ import { BlogModule } from './blog/blog.module';
       url: process.env.DATABASE_URL,
       autoLoadEntities: true,
       synchronize: true, // ⚠️ dev only
+      ssl: {
+        rejectUnauthorized: false,
+      },
     }),
     AuthModule,
     BlogModule,
