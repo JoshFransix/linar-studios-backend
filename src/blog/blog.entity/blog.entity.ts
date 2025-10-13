@@ -15,6 +15,9 @@ export class Blog {
   @Column()
   title: string;
 
+  @Column()
+  description: string;
+
   // ✅ Store Editor.js JSON content properly
   @Column({ type: 'jsonb', default: {} })
   content: any;

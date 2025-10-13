@@ -15,10 +15,11 @@ export class BlogService {
 
   // ✅ Create blog post
   async create(createBlogDto: CreateBlogDto, author: User) {
-    const { title, content, imageUrl } = createBlogDto;
+    const { title, content, imageUrl, description } = createBlogDto;
 
     const blog = this.blogRepo.create({
       title,
+      description,
       content, // can be JSON (Editor.js output)
       imageUrl,
       author,

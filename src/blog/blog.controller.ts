@@ -63,8 +63,11 @@ export class BlogController {
       throw new Error('Invalid content format');
     }
 
-    return this.blogService.create({ ...body, content: parsedContent }, {
-      id: decoded.sub,
-    } as any);
+    return this.blogService.create(
+      { ...body, content: parsedContent, description: body?.description },
+      {
+        id: decoded.sub,
+      } as any,
+    );
   }
 }

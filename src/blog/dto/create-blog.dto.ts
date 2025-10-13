@@ -11,4 +11,8 @@ export class CreateBlogDto {
   @IsOptional()
   @IsString()
   imageUrl?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  description: string;
 }
