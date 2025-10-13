@@ -15,7 +15,7 @@ import { AuthController } from './auth.controller';
 
     TypeOrmModule.forFeature([User]),
 
-    // Use async registration to safely access ConfigService
+    // Use async registration to safely access ConfigServe
     JwtModule.registerAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
