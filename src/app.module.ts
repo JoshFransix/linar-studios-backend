@@ -9,13 +9,40 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: '.env.local',
+      envFilePath:
+        process.env.NODE_ENV === 'production' ? undefined : '.env.local',
     }),
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      url: process.env.DATABASE_URL,
-      autoLoadEntities: true,
-      synchronize: process.env.NODE_ENV !== 'production',
+    TypeOrmModule.forRootAsync({
+      useFactory: async () => {
+        let retries = 5;
+        const retryDelay = 3000; // 3 seconds
+
+        while (retries) {
+          try {
+            return {
+              type: 'postgres',
+              url: process.env.DATABASE_URL,
+              ssl: {
+                rejectUnauthorized: false, // ✅ required for Neon
+              },
+              autoLoadEntities: true,
+              synchronize: process.env.NODE_ENV !== 'production',
+            };
+          } catch (error) {
+            retries -= 1;
+            console.error(
+              `❌ Database connection failed. Retrying (${5 - retries}/5)...`,
+            );
+            console.error(error);
+            if (!retries) throw error;
+            await new Promise((res) => setTimeout(res, retryDelay));
+          }
+        }
+
+        throw new Error(
+          'Could not connect to the database after several attempts.',
+        );
+      },
     }),
     AuthModule,
     BlogModule,
