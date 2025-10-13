@@ -6,6 +6,7 @@ import {
   CreateDateColumn,
 } from 'typeorm';
 import { User } from '../../auth/user.entity/user.entity';
+
 @Entity()
 export class Blog {
   @PrimaryGeneratedColumn()
@@ -14,12 +15,16 @@ export class Blog {
   @Column()
   title: string;
 
-  @Column('text')
-  content: string;
+  // ✅ Store Editor.js JSON content properly
+  @Column({ type: 'jsonb', default: {} })
+  content: any;
 
+  // Optional featured image
   @Column({ nullable: true })
-  imageUrl: string;
+  imageUrl?: string;
 
+  // Author relationship
+  // @ManyToOne(() => User, (user) => user.blogs, { eager: true })
   @ManyToOne(() => User)
   author: User;
 
