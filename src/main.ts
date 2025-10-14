@@ -6,17 +6,27 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // ✅ Enable CORS (adjust origin as needed)
+  // ✅ Enhanced CORS configuration
   app.enableCors({
-    origin: process.env.FRONTEND_URL || '*',
+    origin: [
+      'http://localhost:9000', // local frontend
+      'https://linar-studios.vercel.app', // deployed frontend
+    ],
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'X-Requested-With',
+      'Accept',
+      'Origin',
+    ],
     credentials: true,
   });
 
-  // ✅ Render automatically provides a PORT env var
+  // ✅ Render automatically provides PORT
   const port = process.env.PORT || 5000;
-  await app.listen(port, () => {
-    console.log(`🚀 Backend running on port ${port}`);
-  });
+  await app.listen(port);
+  console.log(`🚀 Backend running on port ${port}`);
 }
 
 bootstrap();
