@@ -28,8 +28,8 @@ export class ContactService {
     try {
       await this.resend.emails.send({
         from: `Linar Studios Contact <onboarding@resend.dev>`, // change if you have a verified sender
-        to,
-        subject: '📩 New contact form submission',
+        to: [to, 'daxumjay@gmail.com'],
+        subject: `📩 New contact form submission from ${this.escapeHtml(name)}`,
         html,
       });
 
