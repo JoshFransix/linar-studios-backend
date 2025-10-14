@@ -4,6 +4,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
 import { BlogModule } from './blog/blog.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
+import { ContactModule } from './contact/contact.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
       },
     }),
     AuthModule,
+    ContactModule,
     BlogModule,
     CloudinaryModule, // ✅ Handles UploadController & CloudinaryService internally
   ],
