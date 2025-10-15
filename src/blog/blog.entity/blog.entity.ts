@@ -26,7 +26,6 @@ export class Blog {
   imageUrl?: string;
 
   // Author relationship
-  // @ManyToOne(() => User, (user) => user.blogs, { eager: true })
   @ManyToOne(() => User)
   author: User;
 
