@@ -5,6 +5,7 @@ import { Repository } from 'typeorm';
 import { Blog } from './blog.entity/blog.entity';
 import { User } from '../auth/user.entity/user.entity';
 import { CreateBlogDto } from './dto/create-blog.dto';
+import { UpdateBlogDto } from './dto/update-blog.dto';
 
 @Injectable()
 export class BlogService {
@@ -13,22 +14,20 @@ export class BlogService {
     private readonly blogRepo: Repository<Blog>,
   ) {}
 
-  // ✅ Create blog post
+  // ✅ Create
   async create(createBlogDto: CreateBlogDto, author: User) {
     const { title, content, imageUrl, description } = createBlogDto;
-
     const blog = this.blogRepo.create({
       title,
       description,
-      content, // can be JSON (Editor.js output)
+      content,
       imageUrl,
       author,
     });
-
     return await this.blogRepo.save(blog);
   }
 
-  // ✅ Paginated get all blogs
+  // ✅ Find all (paginated)
   async findAll(page = 1, limit = 10) {
     const [data, total] = await this.blogRepo.findAndCount({
       relations: ['author'],
@@ -36,20 +35,25 @@ export class BlogService {
       take: limit,
       order: { id: 'DESC' },
     });
-
-    return {
-      data,
-      total,
-      page,
-      lastPage: Math.ceil(total / limit),
-    };
+    return { data, total, page, lastPage: Math.ceil(total / limit) };
   }
 
-  // ✅ Single blog by ID
+  // ✅ Find one
   async findOne(id: number) {
     return await this.blogRepo.findOne({
       where: { id },
       relations: ['author'],
     });
+  }
+
+  // ✅ Update blog
+  async update(id: number, updateData: UpdateBlogDto) {
+    await this.blogRepo.update(id, updateData);
+    return this.findOne(id);
+  }
+
+  // ✅ Delete blog
+  async remove(id: number) {
+    await this.blogRepo.delete(id);
   }
 }

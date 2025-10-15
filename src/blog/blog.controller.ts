@@ -6,15 +6,19 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
+  Delete,
   Body,
   Param,
   Req,
   Query,
   UnauthorizedException,
+  NotFoundException,
 } from '@nestjs/common';
 import { BlogService } from './blog.service';
 import { JwtService } from '@nestjs/jwt';
 import { CreateBlogDto } from './dto/create-blog.dto';
+import { UpdateBlogDto } from './dto/update-blog.dto';
 
 @Controller('blogs')
 export class BlogController {
@@ -40,34 +44,55 @@ export class BlogController {
   // ✅ Create new blog post (auth required)
   @Post()
   async create(@Body() body: CreateBlogDto, @Req() req) {
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
-      throw new UnauthorizedException('No token provided');
-    }
+    const decoded = this.decodeToken(req);
 
-    const token = authHeader.split(' ')[1];
-    const decoded: any = this.jwtService.decode(token);
-
-    if (!decoded?.sub) {
-      throw new UnauthorizedException('Invalid token');
-    }
-
-    // ✅ body.content is JSON string from frontend (Editor.js)
-    let parsedContent: any;
-    try {
-      parsedContent =
-        typeof body.content === 'string'
-          ? JSON.parse(body.content)
-          : body.content;
-    } catch {
+    if (!body.content || typeof body.content !== 'string') {
       throw new Error('Invalid content format');
     }
 
     return this.blogService.create(
-      { ...body, content: parsedContent, description: body?.description },
-      {
-        id: decoded.sub,
-      } as any,
+      { ...body, content: body.content, description: body.description },
+      { id: decoded.sub } as any,
     );
+  }
+
+  // ✅ Update existing blog post (auth required)
+  @Patch(':id')
+  async update(
+    @Param('id') id: number,
+    @Body() body: UpdateBlogDto,
+    @Req() req,
+  ) {
+    const decoded = this.decodeToken(req);
+    const existing = await this.blogService.findOne(id);
+
+    if (!existing) throw new NotFoundException('Blog not found');
+    if (existing.author.id !== decoded.sub)
+      throw new UnauthorizedException('You can only edit your own posts');
+
+    return this.blogService.update(id, body);
+  }
+
+  // ✅ Delete blog post (auth required)
+  @Delete(':id')
+  async delete(@Param('id') id: number, @Req() req) {
+    const decoded = this.decodeToken(req);
+    const existing = await this.blogService.findOne(id);
+
+    if (!existing) throw new NotFoundException('Blog not found');
+    if (existing.author.id !== decoded.sub)
+      throw new UnauthorizedException('You can only delete your own posts');
+
+    await this.blogService.remove(id);
+    return { message: 'Blog deleted successfully' };
+  }
+
+  private decodeToken(req) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) throw new UnauthorizedException('No token provided');
+    const token = authHeader.split(' ')[1];
+    const decoded: any = this.jwtService.decode(token);
+    if (!decoded?.sub) throw new UnauthorizedException('Invalid token');
+    return decoded;
   }
 }

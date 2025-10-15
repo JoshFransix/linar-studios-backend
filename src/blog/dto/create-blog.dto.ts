@@ -5,8 +5,8 @@ export class CreateBlogDto {
   @IsString()
   title: string;
 
-  @IsNotEmpty()
-  content: any; // Editor.js JSON
+  @IsString()
+  content: string; // QuillJS JSON
 
   @IsOptional()
   @IsString()

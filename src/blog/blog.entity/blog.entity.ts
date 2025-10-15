@@ -18,9 +18,8 @@ export class Blog {
   @Column()
   description: string;
 
-  // ✅ Store Editor.js JSON content properly
-  @Column({ type: 'jsonb', default: {} })
-  content: any;
+  @Column({ type: 'text', default: '' })
+  content: string; // HTML from React-Quill
 
   // Optional featured image
   @Column({ nullable: true })
