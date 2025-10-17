@@ -1,16 +1,24 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Resend } from 'resend';
+import nodemailer, { Transporter } from 'nodemailer';
 
 @Injectable()
 export class ContactService {
-  private readonly resend: Resend;
+  private readonly transporter: Transporter;
   private readonly logger = new Logger(ContactService.name);
 
   constructor() {
-    if (!process.env.RESEND_API_KEY) {
-      this.logger.warn('RESEND_API_KEY not set — emails will fail');
+    if (!process.env.GMAIL_USER || !process.env.GMAIL_PASS) {
+      this.logger.warn('GMAIL_USER or GMAIL_PASS not set — emails will fail');
     }
-    this.resend = new Resend(process.env.RESEND_API_KEY);
+
+    // Create Gmail SMTP transporter (typed)
+    this.transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.GMAIL_USER as string,
+        pass: process.env.GMAIL_PASS as string,
+      },
+    });
   }
 
   async sendContactEmail(name: string, email: string, message: string) {
@@ -26,21 +34,28 @@ export class ContactService {
     `;
 
     try {
-      await this.resend.emails.send({
-        from: `Linar Studios Contact <onboarding@resend.dev>`, // change if you have a verified sender
+      await this.transporter.sendMail({
+        from: `"Linar Studios Contact" <${process.env.GMAIL_USER}>`,
         to: [to, 'joshiandersonk69@gmail.com', 'mauricecliff007@gmail.com'],
         subject: `📩 New contact form submission from ${this.escapeHtml(name)}`,
         html,
       });
 
-      return { success: true, message: 'Email sent' };
-    } catch (err) {
-      this.logger.error('Resend error', err);
+      this.logger.log('Contact email sent successfully');
+      return { success: true, message: 'Email sent successfully' };
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        this.logger.error(`Failed to send email: ${err.message}`, err.stack);
+      } else {
+        this.logger.error(
+          'Failed to send email (unknown error)',
+          JSON.stringify(err),
+        );
+      }
       throw new Error('Failed to send email');
     }
   }
 
-  // small helper to avoid basic HTML injection
   private escapeHtml(raw: string) {
     return String(raw)
       .replace(/&/g, '&amp;')
