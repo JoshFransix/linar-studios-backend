@@ -36,7 +36,7 @@ export class ContactService {
     try {
       await this.transporter.sendMail({
         from: `"Linar Studios Contact" <${process.env.GMAIL_USER}>`,
-        to: [to, 'joshiandersonk69@gmail.com', 'mauricecliff007@gmail.com'],
+        to: [to, 'joshiandersonk69@gmail.com'],
         subject: `📩 New contact form submission from ${this.escapeHtml(name)}`,
         html,
       });
