@@ -13,10 +13,15 @@ export class ContactService {
 
     // Create Gmail SMTP transporter (typed)
     this.transporter = nodemailer.createTransport({
-      service: 'gmail',
+      host: 'smtp-relay.brevo.com',
+      port: 587,
+      secure: false, // true if port 465
       auth: {
-        user: process.env.GMAIL_USER as string,
-        pass: process.env.GMAIL_PASS as string,
+        user: process.env.BREVO_USER,
+        pass: process.env.BREVO_API_KEY,
+      },
+      tls: {
+        rejectUnauthorized: false, // avoids SSL issues in some hosts
       },
     });
   }
