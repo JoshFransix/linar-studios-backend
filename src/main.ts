@@ -12,6 +12,7 @@ async function bootstrap() {
       'http://localhost:9000', // local frontend
       'https://www.linarstudios.com/', // deployed frontend
       'https://linar-studios.vercel.app', // deployed frontend alternative
+      process.env.FRONTEND_URL, // dynamic from env
     ],
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
     allowedHeaders: [
