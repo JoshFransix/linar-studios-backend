@@ -1,36 +1,31 @@
 import { Injectable, Logger } from '@nestjs/common';
-import nodemailer, { Transporter } from 'nodemailer';
+import * as brevo from '@getbrevo/brevo';
 
 @Injectable()
 export class ContactService {
-  private readonly transporter: Transporter;
   private readonly logger = new Logger(ContactService.name);
+  private readonly apiInstance: brevo.TransactionalEmailsApi;
 
   constructor() {
-    if (!process.env.GMAIL_USER || !process.env.GMAIL_PASS) {
-      this.logger.warn('GMAIL_USER or GMAIL_PASS not set — emails will fail');
+    if (!process.env.BREVO_API_KEY) {
+      this.logger.error('BREVO_API_KEY not set — emails will fail');
+      throw new Error('BREVO_API_KEY environment variable is required');
     }
 
-    // Create Gmail SMTP transporter (typed)
-    this.transporter = nodemailer.createTransport({
-      host: 'smtp-relay.brevo.com',
-      port: 587,
-      secure: false, // true if port 465
-      auth: {
-        user: process.env.BREVO_USER,
-        pass: process.env.BREVO_API_KEY,
-      },
-      tls: {
-        rejectUnauthorized: false, // avoids SSL issues in some hosts
-      },
-    });
+    this.apiInstance = new brevo.TransactionalEmailsApi();
+
+    // TypeScript now knows BREVO_API_KEY is defined because of the check above
+    this.apiInstance.setApiKey(
+      brevo.TransactionalEmailsApiApiKeys.apiKey,
+      process.env.BREVO_API_KEY,
+    );
   }
 
   async sendContactEmail(name: string, email: string, message: string) {
     const to = process.env.RECEIVER_EMAIL;
     if (!to) throw new Error('RECEIVER_EMAIL not configured');
 
-    const html = `
+    const htmlContent = `
       <h2>New contact form submission</h2>
       <p><strong>Name:</strong> ${this.escapeHtml(name)}</p>
       <p><strong>Email:</strong> ${this.escapeHtml(email)}</p>
@@ -39,22 +34,28 @@ export class ContactService {
     `;
 
     try {
-      await this.transporter.sendMail({
-        from: `"Linar Studios Contact" <${process.env.RECEIVER_EMAIL}>`,
-        to: [to, 'joshiandersonk69@gmail.com'],
-        subject: `📩 New contact form submission from ${this.escapeHtml(name)}`,
-        html,
-      });
+      const sendSmtpEmail = new brevo.SendSmtpEmail();
+      sendSmtpEmail.subject = `📩 New contact form submission from ${this.escapeHtml(name)}`;
+      sendSmtpEmail.htmlContent = htmlContent;
+      sendSmtpEmail.sender = {
+        name: 'Linar Studios Contact',
+        email: process.env.BREVO_SENDER_EMAIL || 'noreply@linarstudios.com',
+      };
+      sendSmtpEmail.to = [{ email: to }];
+      sendSmtpEmail.replyTo = {
+        email: email,
+        name: name,
+      };
 
-      this.logger.log('Contact email sent successfully');
+      await this.apiInstance.sendTransacEmail(sendSmtpEmail);
+
+      this.logger.log('Contact email sent successfully via Brevo API');
       return { success: true, message: 'Email sent successfully' };
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        this.logger.error(`Failed to send email: ${err.message}`, err.stack);
-      } else {
+    } catch (err: any) {
+      this.logger.error(`Failed to send email via Brevo API: ${err.message}`);
+      if (err.response?.body) {
         this.logger.error(
-          'Failed to send email (unknown error)',
-          JSON.stringify(err),
+          `Brevo API error details: ${JSON.stringify(err.response.body)}`,
         );
       }
       throw new Error('Failed to send email');
