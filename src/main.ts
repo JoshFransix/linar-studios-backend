@@ -10,7 +10,8 @@ async function bootstrap() {
   app.enableCors({
     origin: [
       'http://localhost:9000', // local frontend
-      process.env.FRONTEND_URL, // deployed frontend
+      'https://www.linarstudios.com/', // deployed frontend
+      'https://linar-studios.vercel.app', // deployed frontend alternative
     ],
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
     allowedHeaders: [
